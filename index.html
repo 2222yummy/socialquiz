@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🇰🇷 우리나라 국가기관 퀴즈</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Nanum+Myeongjo:wght@400;700;800&family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:     #0d1b2a;
+    --panel:  #162032;
+    --gold:   #c9a84c;
+    --gold2:  #e8c97a;
+    --red:    #cd2e3a;
+    --blue:   #003478;
+    --white:  #f5f0e8;
+    --muted:  #8a9aaa;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Nanum Gothic', sans-serif;
+    background: var(--bg);
+    color: var(--white);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── 배경 패턴 ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background-image:
+      repeating-linear-gradient(0deg,   transparent, transparent 60px, rgba(201,168,76,.04) 60px, rgba(201,168,76,.04) 61px),
+      repeating-linear-gradient(90deg,  transparent, transparent 60px, rgba(201,168,76,.04) 60px, rgba(201,168,76,.04) 61px);
+    pointer-events: none;
+  }
+
+  /* ── 태극 장식 원 ── */
+  .deco-circle {
+    position: fixed;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .deco-circle.c1 {
+    width: 500px; height: 500px;
+    top: -180px; right: -160px;
+    background: radial-gradient(circle, rgba(205,46,58,.12) 0%, transparent 70%);
+  }
+  .deco-circle.c2 {
+    width: 400px; height: 400px;
+    bottom: -120px; left: -100px;
+    background: radial-gradient(circle, rgba(0,52,120,.18) 0%, transparent 70%);
+  }
+  .deco-circle.c3 {
+    width: 300px; height: 300px;
+    top: 40%; left: 50%;
+    transform: translate(-50%,-50%);
+    background: radial-gradient(circle, rgba(201,168,76,.06) 0%, transparent 70%);
+  }
+
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 60px 24px 100px;
+    position: relative; z-index: 1;
+  }
+
+  /* ── 헤더 ── */
+  header {
+    text-align: center;
+    margin-bottom: 64px;
+  }
+
+  .taeguk {
+    font-size: 72px;
+    margin-bottom: 20px;
+    display: block;
+    animation: spinIn 1s cubic-bezier(.34,1.56,.64,1) both;
+    filter: drop-shadow(0 0 24px rgba(201,168,76,.5));
+  }
+
+  .header-label {
+    display: inline-block;
+    font-family: 'Nanum Myeongjo', serif;
+    font-size: 12px;
+    letter-spacing: 6px;
+    color: var(--gold);
+    border-top: 1px solid rgba(201,168,76,.4);
+    border-bottom: 1px solid rgba(201,168,76,.4);
+    padding: 6px 24px;
+    margin-bottom: 20px;
+    animation: fadeDown .8s .2s ease both;
+  }
+
+  header h1 {
+    font-family: 'Jua', sans-serif;
+    font-size: clamp(28px, 6vw, 52px);
+    line-height: 1.2;
+    color: var(--white);
+    animation: fadeDown .8s .3s ease both;
+  }
+
+  header h1 em {
+    font-style: normal;
+    color: var(--gold2);
+    position: relative;
+  }
+
+  header h1 em::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: -4px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--red), var(--gold), var(--blue));
+    border-radius: 2px;
+  }
+
+  header p {
+    margin-top: 20px;
+    color: var(--muted);
+    font-size: 15px;
+    animation: fadeDown .8s .4s ease both;
+    line-height: 1.8;
+  }
+
+  /* ── 구분선 ── */
+  .divider {
+    display: flex; align-items: center; gap: 16px;
+    margin: 48px 0 40px;
+    animation: fadeDown .8s .5s ease both;
+  }
+  .divider::before, .divider::after {
+    content: ''; flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(201,168,76,.4), transparent);
+  }
+  .divider span {
+    font-family: 'Nanum Myeongjo', serif;
+    font-size: 12px; letter-spacing: 4px; color: var(--gold);
+  }
+
+  /* ── 카드 그리드 ── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+    margin-bottom: 60px;
+  }
+
+  .quiz-card {
+    background: var(--panel);
+    border: 1px solid rgba(201,168,76,.15);
+    border-radius: 20px;
+    padding: 36px 28px;
+    text-decoration: none;
+    color: var(--white);
+    position: relative;
+    overflow: hidden;
+    transition: all .3s cubic-bezier(.34,1.56,.64,1);
+    display: flex; flex-direction: column;
+    animation: slideUp .7s ease both;
+  }
+
+  .quiz-card:nth-child(1) { animation-delay: .5s; }
+  .quiz-card:nth-child(2) { animation-delay: .65s; }
+  .quiz-card:nth-child(3) { animation-delay: .8s; }
+
+  /* 카드별 포인트 컬러 */
+  .quiz-card.card-assembly { --accent: #4a90d9; --accent2: #7ab3e8; }
+  .quiz-card.card-executive { --accent: #e67e22; --accent2: #f0a352; }
+  .quiz-card.card-court  { --accent: #c9a84c; --accent2: #e8c97a; }
+
+  .quiz-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+
+  .quiz-card::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 80% 20%, rgba(255,255,255,.04) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .quiz-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    border-color: var(--accent);
+    box-shadow:
+      0 20px 60px rgba(0,0,0,.4),
+      0 0 0 1px var(--accent),
+      inset 0 0 40px rgba(255,255,255,.02);
+  }
+
+  .card-icon {
+    font-size: 52px;
+    margin-bottom: 20px;
+    display: block;
+    transition: transform .3s;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,.3));
+  }
+
+  .quiz-card:hover .card-icon { transform: scale(1.15) rotate(-5deg); }
+
+  .card-tag {
+    font-size: 11px; letter-spacing: 3px;
+    color: var(--accent2);
+    font-family: 'Nanum Myeongjo', serif;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+
+  .card-title {
+    font-family: 'Jua', sans-serif;
+    font-size: 22px;
+    color: var(--white);
+    margin-bottom: 12px;
+    line-height: 1.3;
+  }
+
+  .card-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.8;
+    flex: 1;
+    margin-bottom: 24px;
+  }
+
+  .card-meta {
+    display: flex; align-items: center; justify-content: space-between;
+    border-top: 1px solid rgba(255,255,255,.08);
+    padding-top: 16px;
+  }
+
+  .card-count {
+    font-size: 12px; color: var(--muted);
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  .card-count::before { content: '📝'; font-size: 14px; }
+
+  .card-arrow {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    transition: all .3s;
+    box-shadow: 0 4px 12px rgba(0,0,0,.3);
+  }
+
+  .quiz-card:hover .card-arrow {
+    transform: translateX(4px);
+    background: var(--accent2);
+  }
+
+  /* ── 안내 섹션 ── */
+  .info-section {
+    background: var(--panel);
+    border: 1px solid rgba(201,168,76,.12);
+    border-radius: 20px;
+    padding: 32px;
+    animation: fadeDown 1s .9s ease both;
+  }
+
+  .info-title {
+    font-family: 'Jua', sans-serif;
+    font-size: 18px;
+    color: var(--gold2);
+    margin-bottom: 20px;
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+  }
+
+  .info-item {
+    background: rgba(255,255,255,.04);
+    border-radius: 12px;
+    padding: 16px;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.8;
+    border: 1px solid rgba(255,255,255,.06);
+  }
+
+  .info-item strong {
+    display: block;
+    color: var(--white);
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+
+  /* ── 푸터 ── */
+  footer {
+    text-align: center;
+    margin-top: 60px;
+    color: rgba(138,154,170,.5);
+    font-size: 12px;
+    letter-spacing: 1px;
+    animation: fadeDown 1s 1s ease both;
+  }
+
+  footer .dot { margin: 0 8px; }
+
+  /* ── 별 파티클 ── */
+  .stars {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    overflow: hidden;
+  }
+  .star {
+    position: absolute;
+    width: 2px; height: 2px;
+    background: var(--gold);
+    border-radius: 50%;
+    opacity: 0;
+    animation: twinkle var(--d, 3s) var(--delay, 0s) infinite;
+  }
+
+  /* ── 애니메이션 ── */
+  @keyframes spinIn {
+    from { opacity:0; transform: rotate(-180deg) scale(0); }
+    to   { opacity:1; transform: rotate(0deg)   scale(1); }
+  }
+  @keyframes fadeDown {
+    from { opacity:0; transform: translateY(-16px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+  @keyframes slideUp {
+    from { opacity:0; transform: translateY(40px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+  @keyframes twinkle {
+    0%,100% { opacity:0; transform:scale(1); }
+    50%     { opacity:.6; transform:scale(1.4); }
+  }
+  @keyframes float {
+    0%,100% { transform: translateY(0px); }
+    50%     { transform: translateY(-6px); }
+  }
+
+  .floating { animation: float 3s ease-in-out infinite; }
+
+  @media(max-width:480px){
+    .card-grid { grid-template-columns: 1fr; }
+    .container { padding: 40px 16px 80px; }
+    header h1  { font-size: 28px; }
+    .taeguk    { font-size: 56px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 장식 요소 -->
+<div class="deco-circle c1"></div>
+<div class="deco-circle c2"></div>
+<div class="deco-circle c3"></div>
+<div class="stars" id="stars"></div>
+
+<div class="container">
+
+  <!-- 헤더 -->
+  <header>
+    <span class="taeguk floating">🇰🇷</span>
+    <div class="header-label">6학년 사회 · 국가기관</div>
+    <h1>우리나라를 이끄는<br><em>세 기관</em>을 알아볼까요?</h1>
+    <p>국회 · 행정부 · 법원<br>퀴즈를 풀며 핵심 내용을 익혀요!</p>
+  </header>
+
+  <!-- 구분선 -->
+  <div class="divider"><span>QUIZ SELECTION</span></div>
+
+  <!-- 카드 그리드 -->
+  <div class="card-grid">
+
+    <a href="국회퀴즈.html" class="quiz-card card-assembly">
+      <span class="card-icon">🏛️</span>
+      <div class="card-tag">Legislative · 입법부</div>
+      <div class="card-title">국회에서<br>하는 일</div>
+      <div class="card-desc">
+        법 만들기, 국정감사, 예산안 심의,<br>
+        인사청문회, 법이 만들어지는 과정까지!
+      </div>
+      <div class="card-meta">
+        <div class="card-count">7문제</div>
+        <div class="card-arrow">→</div>
+      </div>
+    </a>
+
+    <a href="행정부퀴즈.html" class="quiz-card card-executive">
+      <span class="card-icon">⚙️</span>
+      <div class="card-tag">Executive · 행정부</div>
+      <div class="card-title">행정부에서<br>하는 일</div>
+      <div class="card-desc">
+        대통령, 국무총리, 국무위원,<br>
+        국무회의 구성과 운영 방식까지!
+      </div>
+      <div class="card-meta">
+        <div class="card-count">8문제</div>
+        <div class="card-arrow">→</div>
+      </div>
+    </a>
+
+    <a href="법원퀴즈.html" class="quiz-card card-court">
+      <span class="card-icon">⚖️</span>
+      <div class="card-tag">Judicial · 사법부</div>
+      <div class="card-title">법원에서<br>하는 일</div>
+      <div class="card-desc">
+        재판의 종류, 민사·형사·행정재판,<br>
+        삼심제도와 사법권의 독립까지!
+      </div>
+      <div class="card-meta">
+        <div class="card-count">8문제</div>
+        <div class="card-arrow">→</div>
+      </div>
+    </a>
+
+  </div>
+
+  <!-- 안내 섹션 -->
+  <div class="info-section">
+    <div class="info-title">💡 퀴즈 이용 안내</div>
+    <div class="info-grid">
+      <div class="info-item">
+        <strong>🖱️ 클릭으로 풀기</strong>
+        버튼을 클릭하면 바로 정답·오답이 표시돼요
+      </div>
+      <div class="info-item">
+        <strong>📊 다양한 유형</strong>
+        O/X · 객관식 · 빈칸채우기 · 순서맞추기 · 매칭
+      </div>
+      <div class="info-item">
+        <strong>🎯 즉시 해설</strong>
+        문제마다 친절한 해설이 바로 나와요
+      </div>
+      <div class="info-item">
+        <strong>🔄 반복 학습</strong>
+        틀려도 괜찮아요! 다시 풀기로 완벽하게
+      </div>
+    </div>
+  </div>
+
+  <!-- 푸터 -->
+  <footer>
+    6학년 사회 <span class="dot">·</span> 국가기관 퀴즈
+    <span class="dot">·</span> 즐겁게 배워요 🎓
+  </footer>
+
+</div>
+
+<script>
+  // 별 파티클 생성
+  const starsEl = document.getElementById('stars');
+  for(let i = 0; i < 60; i++){
+    const star = document.createElement('div');
+    star.className = 'star';
+    star.style.left   = Math.random()*100 + '%';
+    star.style.top    = Math.random()*100 + '%';
+    star.style.setProperty('--d',     (2 + Math.random()*4)+'s');
+    star.style.setProperty('--delay', (Math.random()*5)+'s');
+    starsEl.appendChild(star);
+  }
+</script>
+
+</body>
+</html>
