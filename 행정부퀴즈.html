@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚙️ 행정부 퀴즈</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #1c2e4a;
+    --red:  #c0392b;
+    --gold: #e67e22;
+    --green:#27ae60;
+    --bg:   #f4f6fb;
+    --white:#ffffff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nanum Gothic', sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+  }
+
+  body::before {
+    content:'';
+    position:fixed; inset:0;
+    background:
+      radial-gradient(circle at 15% 15%, rgba(192,57,43,.08) 0%, transparent 45%),
+      radial-gradient(circle at 85% 85%, rgba(28,46,74,.09) 0%, transparent 45%);
+    pointer-events:none; z-index:0;
+  }
+
+  .container {
+    max-width:760px; margin:0 auto;
+    padding:32px 20px 80px;
+    position:relative; z-index:1;
+  }
+
+  /* ── 헤더 ── */
+  header { text-align:center; margin-bottom:36px; animation:fadeDown .6s ease both; }
+
+  .badge {
+    display:inline-block;
+    background:var(--navy); color:#fff;
+    font-family:'Jua',sans-serif; font-size:13px; letter-spacing:3px;
+    padding:6px 20px; border-radius:999px; margin-bottom:14px;
+  }
+
+  header h1 {
+    font-family:'Jua',sans-serif;
+    font-size:clamp(26px,6vw,42px);
+    color:var(--navy); line-height:1.25;
+  }
+  header h1 span { color:var(--red); }
+  header p { margin-top:10px; color:#6a7a9a; font-size:15px; }
+
+  /* ── 진행바 ── */
+  .prog-label { text-align:right; font-size:13px; color:#8a9abf; margin-bottom:6px; animation:fadeDown .6s .1s ease both; }
+  .prog-wrap  { background:#dde3f0; border-radius:999px; height:10px; margin-bottom:30px; overflow:hidden; animation:fadeDown .6s .1s ease both; }
+  .prog-bar   { height:100%; background:linear-gradient(90deg,var(--red),var(--gold)); border-radius:999px; transition:width .5s cubic-bezier(.4,0,.2,1); width:0; }
+
+  /* ── 카드 ── */
+  .quiz-card {
+    background:var(--white); border-radius:24px;
+    padding:36px 32px;
+    box-shadow:0 8px 40px rgba(28,46,74,.10);
+    animation:slideUp .5s ease both;
+    position:relative; overflow:hidden;
+  }
+  .quiz-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:5px;
+    background:linear-gradient(90deg,var(--navy),var(--red),var(--gold));
+  }
+
+  .q-num  { font-family:'Jua',sans-serif; font-size:13px; color:var(--red); letter-spacing:2px; margin-bottom:10px; }
+  .q-text { font-family:'Jua',sans-serif; font-size:clamp(17px,3.5vw,23px); color:var(--navy); line-height:1.55; margin-bottom:26px; }
+  .q-hint { font-size:13px; color:#8a9abf; background:#f0f4ff; padding:8px 14px; border-radius:10px; display:inline-block; margin-bottom:22px; }
+
+  /* ── 보기 ── */
+  .options      { display:grid; gap:12px; }
+  .options.two  { grid-template-columns:1fr 1fr; }
+
+  .opt-btn {
+    background:#f5f8ff; border:2.5px solid #dde4f0; border-radius:14px;
+    padding:15px 18px;
+    font-family:'Nanum Gothic',sans-serif; font-size:15px; font-weight:700;
+    color:var(--navy); cursor:pointer;
+    transition:all .2s; text-align:left;
+    display:flex; align-items:center; gap:12px;
+  }
+  .opt-btn:hover:not(:disabled) { border-color:var(--red); background:#fff5f4; transform:translateY(-2px); box-shadow:0 4px 14px rgba(192,57,43,.15); }
+
+  .opt-icon {
+    width:32px; height:32px; border-radius:50%;
+    background:#e8eeff; display:flex; align-items:center; justify-content:center;
+    font-size:13px; font-weight:800; color:var(--navy); flex-shrink:0;
+    transition:all .2s;
+  }
+  .opt-btn.correct { border-color:var(--green); background:#f0fff6; color:#1a6e40; }
+  .opt-btn.correct .opt-icon { background:var(--green); color:#fff; }
+  .opt-btn.wrong   { border-color:var(--red);   background:#fff0ef; color:#922b21; }
+  .opt-btn.wrong   .opt-icon { background:var(--red);   color:#fff; }
+  .opt-btn.dimmed  { opacity:.38; cursor:not-allowed; }
+
+  /* ── 빈칸 퀴즈 ── */
+  .blank-wrap { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:18px; }
+  .blank-chip {
+    background:var(--navy); color:#fff;
+    padding:10px 18px; border-radius:10px;
+    font-size:15px; font-weight:700; cursor:pointer;
+    transition:all .15s;
+  }
+  .blank-chip:hover { background:#2c4a74; transform:scale(1.04); }
+  .blank-chip.used  { opacity:.28; cursor:not-allowed; pointer-events:none; }
+
+  .blank-sentence {
+    font-family:'Jua',sans-serif; font-size:18px; color:var(--navy);
+    line-height:2; margin-bottom:18px;
+  }
+  .blank-box {
+    display:inline-block;
+    min-width:80px; border-bottom:3px solid var(--red);
+    margin:0 4px; text-align:center;
+    font-size:18px; font-weight:800; color:var(--red);
+    cursor:pointer; transition:all .2s;
+    vertical-align:bottom; padding:0 4px;
+  }
+  .blank-box.filled { border-color:var(--gold); color:var(--gold); }
+  .blank-box.correct-b { border-color:var(--green); color:var(--green); }
+  .blank-box.wrong-b   { border-color:var(--red);   color:var(--red);   }
+
+  .check-blank-btn {
+    width:100%; padding:14px; background:var(--gold); border:none;
+    border-radius:12px; font-family:'Jua',sans-serif; font-size:16px;
+    cursor:pointer; color:#fff; transition:all .2s; margin-bottom:4px;
+  }
+  .check-blank-btn:hover { background:#ca6f1e; transform:translateY(-2px); }
+
+  /* ── 순서 맞추기 ── */
+  .order-label { font-size:13px; color:#7a8aaa; font-weight:700; margin-bottom:6px; }
+  .order-pool  { display:flex; flex-wrap:wrap; gap:10px; min-height:52px; border:2.5px dashed #dde4f0; border-radius:14px; padding:10px; margin-bottom:10px; }
+  .order-answer{ display:flex; flex-wrap:wrap; gap:10px; min-height:60px; border:2.5px solid #dde4f0; background:#f5f8ff; border-radius:14px; padding:10px; }
+  .order-chip  { background:var(--navy); color:#fff; padding:10px 16px; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; user-select:none; transition:all .15s; }
+  .order-chip:hover { background:#2c4a74; transform:scale(1.04); }
+
+  .check-order-btn { width:100%; padding:14px; background:var(--gold); border:none; border-radius:12px; font-family:'Jua',sans-serif; font-size:16px; cursor:pointer; color:#fff; transition:all .2s; margin-top:12px; }
+  .check-order-btn:hover { background:#ca6f1e; transform:translateY(-2px); }
+
+  /* ── 피드백 ── */
+  .feedback { margin-top:20px; padding:15px 18px; border-radius:14px; font-size:15px; font-weight:700; display:none; animation:popIn .3s ease both; }
+  .feedback.show { display:block; }
+  .feedback.ok { background:#eafaf1; color:#1a6e40; border:2px solid #a9dfbf; }
+  .feedback.no { background:#fdedec; color:#922b21; border:2px solid #f5b7b1; }
+
+  /* ── 다음 버튼 ── */
+  .next-btn { display:none; margin-top:18px; width:100%; padding:16px; background:var(--navy); color:#fff; border:none; border-radius:14px; font-family:'Jua',sans-serif; font-size:18px; cursor:pointer; letter-spacing:1px; transition:all .2s; }
+  .next-btn:hover { background:#2c4a74; transform:translateY(-2px); box-shadow:0 6px 20px rgba(28,46,74,.22); }
+  .next-btn.show  { display:block; animation:fadeUp .3s ease both; }
+
+  /* ── 결과 ── */
+  #result-screen { display:none; text-align:center; animation:slideUp .6s ease both; }
+  .result-trophy { font-size:82px; margin-bottom:14px; animation:bounce .8s .3s ease both; }
+  .result-title  { font-family:'Jua',sans-serif; font-size:32px; color:var(--navy); margin-bottom:6px; }
+  .result-score  { font-family:'Jua',sans-serif; font-size:54px; color:var(--red); margin:16px 0; }
+  .result-msg    { font-size:16px; color:#5a6a8a; line-height:1.7; margin-bottom:28px; }
+  .result-breakdown { background:#f5f8ff; border-radius:18px; padding:20px; margin-bottom:26px; text-align:left; }
+  .rb-item { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #e8eeff; font-size:14px; color:var(--navy); }
+  .rb-item:last-child { border-bottom:none; }
+  .rb-icon { font-size:20px; width:28px; text-align:center; }
+  .retry-btn { padding:18px 40px; background:var(--navy); color:#fff; border:none; border-radius:16px; font-family:'Jua',sans-serif; font-size:20px; cursor:pointer; transition:all .2s; }
+  .retry-btn:hover { background:#2c4a74; transform:translateY(-3px); box-shadow:0 8px 24px rgba(28,46,74,.22); }
+
+  /* ── 애니메이션 ── */
+  @keyframes fadeDown  { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes slideUp   { from{opacity:0;transform:translateY(30px)}  to{opacity:1;transform:translateY(0)} }
+  @keyframes fadeUp    { from{opacity:0;transform:translateY(10px)}  to{opacity:1;transform:translateY(0)} }
+  @keyframes popIn     { from{opacity:0;transform:scale(.9)}         to{opacity:1;transform:scale(1)} }
+  @keyframes bounce    { 0%,100%{transform:translateY(0)} 30%{transform:translateY(-18px)} 60%{transform:translateY(-8px)} }
+  @keyframes shake     { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)} }
+  .shake { animation:shake .4s ease; }
+
+  @media(max-width:480px){ .options.two{grid-template-columns:1fr} .quiz-card{padding:22px 16px} }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="badge">⚙️ 사회 퀴즈</div>
+    <h1>행정부에서 하는 일을<br><span>알아볼까요?</span></h1>
+    <p>총 8문제 · 클릭해서 풀어보세요!</p>
+  </header>
+
+  <div class="prog-label" id="prog-label">1 / 8</div>
+  <div class="prog-wrap"><div class="prog-bar" id="prog-bar"></div></div>
+
+  <div id="quiz-area"></div>
+  <div id="result-screen"></div>
+</div>
+
+<script>
+/* ════════════════════════════════
+   문제 데이터
+════════════════════════════════ */
+const questions = [
+
+  /* 1. O/X */
+  {
+    type:'ox',
+    q:'대통령은 행정부의 최고 책임자이며, 임기는 5년이다.',
+    answer:'O',
+    ok:'정답! 대통령은 행정부 최고 책임자이고 임기는 5년이에요.',
+    no:'틀렸어요! 대통령 임기는 5년이 맞아요. (국회의원은 4년!)',
+  },
+
+  /* 2. 객관식 */
+  {
+    type:'choice',
+    q:'국무총리에 대한 설명으로 <u>틀린</u> 것은 무엇일까요?',
+    options:['대통령을 보좌한다','대통령 부재 시 권한을 대행한다','국민이 직접 투표로 선출한다','대통령이 지명하고 국회가 동의한다'],
+    answer:2,
+    ok:'정답! 국무총리는 국민이 직접 뽑지 않아요. 대통령이 지명하고 국회가 동의해야 해요.',
+    no:'아쉬워요! 국무총리는 대통령이 지명하고 국회 동의를 받아요. 국민이 직접 선출하지 않아요.',
+  },
+
+  /* 3. 빈칸 채우기 */
+  {
+    type:'blank',
+    sentence:['국무회의는 대통령 및 국무총리와', '명 이상 ~', '명 이하의 국무위원으로 구성된다.'],
+    blanks:['15','30'],
+    hint:'💡 숫자를 맞춰보세요!',
+    ok:'정답! 국무회의는 15명 이상 ~ 30명 이하의 국무위원으로 구성돼요.',
+    no:'아쉬워요! 국무회의는 15명 이상 ~ 30명 이하의 국무위원으로 구성돼요.',
+  },
+
+  /* 4. 객관식 */
+  {
+    type:'choice',
+    q:'국무회의에서 의결이 되려면 몇 분의 몇 이상 찬성해야 할까요?',
+    options:['1/2 이상 (과반수)','2/3 이상','3/4 이상','만장일치'],
+    answer:1,
+    ok:'정답! 국무회의는 과반수 출석으로 개회하고, 2/3 이상 찬성으로 의결해요.',
+    no:'아쉬워요! 국무회의는 2/3 이상 찬성이 있어야 의결돼요.',
+  },
+
+  /* 5. O/X */
+  {
+    type:'ox',
+    q:'차관은 국무회의에 대리로 출석할 수 있고, 표결에도 참여할 수 있다.',
+    answer:'X',
+    ok:'정답! 차관은 대리 출석은 가능하지만, 표결(투표)에는 참여할 수 없어요.',
+    no:'틀렸어요! 차관은 출석은 가능하지만 표결 참여는 할 수 없어요.',
+  },
+
+  /* 6. 객관식 */
+  {
+    type:'choice',
+    q:'국무위원에 대한 설명으로 옳은 것은?',
+    options:['국민이 직접 선출한다','국무회의 구성원이며 행정각부의 장이 될 수 있다','임기는 4년이다','국회의원과 같은 역할을 한다'],
+    answer:1,
+    ok:'정답! 국무위원은 국무회의의 구성원이며, 행정각부(장관)의 장이 될 수 있어요.',
+    no:'아쉬워요! 국무위원은 국무회의 구성원이며 행정각부의 장이 될 수 있어요.',
+  },
+
+  /* 7. 순서 맞추기 */
+  {
+    type:'order',
+    q:'국무총리가 임명되는 과정을 순서대로 맞춰보세요!',
+    hint:'💡 카드를 클릭해 순서 칸으로 이동하세요',
+    items:['대통령이 지명','국회 동의','대통령이 임명 발표','국무총리 업무 시작'],
+    answer:['대통령이 지명','국회 동의','대통령이 임명 발표','국무총리 업무 시작'],
+    ok:'완벽해요! 대통령 지명 → 국회 동의 → 임명 발표 → 업무 시작 순이에요.',
+    no:'아쉬워요! 순서는: 대통령이 지명 → 국회 동의 → 대통령이 임명 발표 → 국무총리 업무 시작 이에요.',
+  },
+
+  /* 8. 객관식 (국무회의 심의 사항) */
+  {
+    type:'choice',
+    q:'다음 중 국무회의에서 심의하는 사항이 <u>아닌</u> 것은?',
+    options:['법안 제안','예산안','조약','국회의원 선거 후보 공천'],
+    answer:3,
+    ok:'정답! 국회의원 후보 공천은 각 정당이 하는 일이에요. 국무회의는 법안·예산안·조약·상과벌·나라의 큰 결정을 심의해요.',
+    no:'아쉬워요! 국회의원 공천은 정당의 일이에요. 국무회의 심의 사항은 법안·예산안·조약 등이에요.',
+  },
+];
+
+/* ════════════════════════════════
+   상태
+════════════════════════════════ */
+const icons = ['①','②','③','④'];
+let current=0, score=0, results=[], answered=false;
+
+/* ════════════════════════════════
+   진행바
+════════════════════════════════ */
+function updateProgress(){
+  const pct = (current/questions.length)*100;
+  document.getElementById('prog-bar').style.width = pct+'%';
+  document.getElementById('prog-label').textContent = `${current+1} / ${questions.length}`;
+}
+
+/* ════════════════════════════════
+   렌더
+════════════════════════════════ */
+function render(){
+  updateProgress(); answered=false;
+  const q=questions[current];
+  const area=document.getElementById('quiz-area');
+  area.innerHTML='';
+
+  const card=document.createElement('div');
+  card.className='quiz-card';
+  card.innerHTML=`
+    <div class="q-num">문제 ${current+1} / ${questions.length}</div>
+    <div class="q-text">${q.q||''}</div>
+    ${q.hint?`<div class="q-hint">${q.hint}</div>`:''}
+    <div id="opt-area"></div>
+    <div class="feedback" id="feedback"></div>
+    <button class="next-btn" id="next-btn" onclick="nextQ()">
+      ${current<questions.length-1?'다음 문제 →':'결과 보기 🎉'}
+    </button>`;
+  area.appendChild(card);
+
+  const oa=document.getElementById('opt-area');
+  if(q.type==='choice') renderChoice(q,oa);
+  else if(q.type==='ox') renderOX(q,oa);
+  else if(q.type==='blank') renderBlank(q,oa);
+  else if(q.type==='order') renderOrder(q,oa);
+}
+
+/* ── 객관식 ── */
+function renderChoice(q,area){
+  const grid=document.createElement('div'); grid.className='options';
+  q.options.forEach((opt,i)=>{
+    const btn=document.createElement('button'); btn.className='opt-btn';
+    btn.innerHTML=`<span class="opt-icon">${icons[i]}</span>${opt}`;
+    btn.onclick=()=>checkChoice(i,q,grid);
+    grid.appendChild(btn);
+  });
+  area.appendChild(grid);
+}
+
+/* ── O/X ── */
+function renderOX(q,area){
+  const grid=document.createElement('div'); grid.className='options two';
+  ['O','X'].forEach(v=>{
+    const btn=document.createElement('button'); btn.className='opt-btn';
+    btn.style.justifyContent='center'; btn.style.fontSize='34px';
+    btn.innerHTML=v==='O'?'⭕':'❌';
+    btn.onclick=()=>checkChoice(v,q,grid);
+    grid.appendChild(btn);
+  });
+  area.appendChild(grid);
+}
+
+function checkChoice(sel,q,grid){
+  if(answered)return; answered=true;
+  const btns=grid.querySelectorAll('.opt-btn');
+  const correct=q.answer; const isOX=q.type==='ox';
+  const isCorrect=sel===correct;
+  if(isOX){
+    btns.forEach((b,i)=>{
+      const v=i===0?'O':'X';
+      if(v===correct)b.classList.add('correct');
+      else if(v===sel&&!isCorrect){b.classList.add('wrong');b.classList.add('shake');}
+      else b.classList.add('dimmed');
+      b.disabled=true;
+    });
+  } else {
+    btns.forEach((b,i)=>{
+      if(i===correct)b.classList.add('correct');
+      else if(i===sel&&!isCorrect){b.classList.add('wrong');b.classList.add('shake');}
+      else b.classList.add('dimmed');
+      b.disabled=true;
+    });
+  }
+  showFeedback(isCorrect,q);
+  if(isCorrect)score++;
+  results.push({q:q.q||`문제 ${current+1}`,correct:isCorrect});
+}
+
+/* ── 빈칸 채우기 ── */
+function renderBlank(q,area){
+  // 칩 보기: 숫자들 + 오답지
+  const wordPool=['15','30','20','25','10'];
+  const shuffled=[...wordPool].sort(()=>Math.random()-.5);
+
+  const chipWrap=document.createElement('div'); chipWrap.className='blank-wrap';
+  shuffled.forEach(w=>{
+    const chip=document.createElement('div'); chip.className='blank-chip';
+    chip.textContent=w; chip.dataset.val=w;
+    chip.onclick=()=>fillBlank(chip,boxEls);
+    chipWrap.appendChild(chip);
+  });
+
+  // 문장 (빈칸 삽입)
+  const sent=document.createElement('div'); sent.className='blank-sentence';
+  const boxEls=[];
+  q.sentence.forEach((part,i)=>{
+    sent.appendChild(document.createTextNode(part));
+    if(i<q.blanks.length){
+      const box=document.createElement('span'); box.className='blank-box';
+      box.textContent='___'; box.dataset.answer=q.blanks[i]; box.dataset.filled='';
+      box.onclick=()=>clearBlank(box,chipWrap);
+      sent.appendChild(box);
+      boxEls.push(box);
+    }
+  });
+
+  const checkBtn=document.createElement('button'); checkBtn.className='check-blank-btn';
+  checkBtn.textContent='✅ 확인하기';
+  checkBtn.onclick=()=>checkBlank(q,boxEls,checkBtn);
+
+  area.appendChild(chipWrap);
+  area.appendChild(sent);
+  area.appendChild(checkBtn);
+
+  // 카드 q-text 제거 (sentence가 대신)
+  document.querySelector('.q-text').textContent='빈칸에 알맞은 숫자를 넣어보세요!';
+}
+
+let selectedChip=null;
+function fillBlank(chip,boxes){
+  if(chip.classList.contains('used'))return;
+  // 빈 박스 찾기
+  const empty=boxes.find(b=>b.dataset.filled==='');
+  if(!empty)return;
+  empty.textContent=chip.dataset.val;
+  empty.dataset.filled=chip.dataset.val;
+  empty.classList.add('filled');
+  chip.classList.add('used');
+}
+function clearBlank(box,chipWrap){
+  if(box.dataset.filled==='')return;
+  const val=box.dataset.filled;
+  // 칩 복구
+  chipWrap.querySelectorAll('.blank-chip').forEach(c=>{ if(c.dataset.val===val&&c.classList.contains('used')){ c.classList.remove('used'); } });
+  box.textContent='___'; box.dataset.filled=''; box.classList.remove('filled','correct-b','wrong-b');
+}
+function checkBlank(q,boxes,btn){
+  if(answered)return;
+  const allFilled=boxes.every(b=>b.dataset.filled!=='');
+  if(!allFilled){
+    const fb=document.getElementById('feedback');
+    fb.className='feedback no show'; fb.textContent='⚠️ 모든 빈칸을 채워주세요!'; return;
+  }
+  const isCorrect=boxes.every(b=>b.dataset.filled===b.dataset.answer);
+  boxes.forEach(b=>{
+    b.classList.remove('filled');
+    b.classList.add(b.dataset.filled===b.dataset.answer?'correct-b':'wrong-b');
+  });
+  answered=true; btn.disabled=true;
+  showFeedback(isCorrect,q);
+  if(isCorrect)score++;
+  results.push({q:'빈칸 채우기 (국무회의 구성)',correct:isCorrect});
+}
+
+/* ── 순서 맞추기 ── */
+function renderOrder(q,area){
+  const shuffled=[...q.items].sort(()=>Math.random()-.5);
+
+  const pLabel=document.createElement('div'); pLabel.className='order-label'; pLabel.textContent='📦 보기 카드 (클릭→아래 이동)';
+  const pool=document.createElement('div'); pool.className='order-pool'; pool.id='order-pool';
+  const aLabel=document.createElement('div'); aLabel.className='order-label'; aLabel.style.marginTop='14px'; aLabel.textContent='📋 순서 칸 (클릭→되돌리기)';
+  const ans=document.createElement('div'); ans.className='order-answer'; ans.id='order-answer';
+
+  shuffled.forEach(item=>pool.appendChild(makeChip(item,pool,ans)));
+
+  const checkBtn=document.createElement('button'); checkBtn.className='check-order-btn';
+  checkBtn.textContent='✅ 순서 확인하기';
+  checkBtn.onclick=()=>checkOrder(q,ans,checkBtn);
+
+  area.appendChild(pLabel); area.appendChild(pool);
+  area.appendChild(aLabel); area.appendChild(ans);
+  area.appendChild(checkBtn);
+}
+function makeChip(text,from,to){
+  const chip=document.createElement('div'); chip.className='order-chip'; chip.textContent=text; chip.dataset.text=text;
+  chip.onclick=()=>{ if(chip.parentElement===from) to.appendChild(chip); else from.appendChild(chip); };
+  return chip;
+}
+function checkOrder(q,ansArea,btn){
+  if(answered)return;
+  const placed=[...ansArea.querySelectorAll('.order-chip')].map(c=>c.dataset.text);
+  if(placed.length!==q.answer.length){
+    const fb=document.getElementById('feedback');
+    fb.className='feedback no show'; fb.textContent=`⚠️ 카드 ${q.answer.length}개를 모두 순서 칸에 놓아주세요!`; return;
+  }
+  const isCorrect=placed.every((v,i)=>v===q.answer[i]);
+  ansArea.querySelectorAll('.order-chip').forEach((c,i)=>{
+    c.style.background=c.dataset.text===q.answer[i]?'#27ae60':'#c0392b';
+  });
+  answered=true; btn.disabled=true;
+  showFeedback(isCorrect,q);
+  if(isCorrect)score++;
+  results.push({q:q.q,correct:isCorrect});
+}
+
+/* ── 피드백 + 다음 버튼 ── */
+function showFeedback(isCorrect,q){
+  const fb=document.getElementById('feedback');
+  fb.className='feedback '+(isCorrect?'ok':'no')+' show';
+  fb.textContent=(isCorrect?'🎉 ':'💡 ')+(isCorrect?q.ok:q.no);
+  document.getElementById('next-btn').classList.add('show');
+}
+
+/* ── 다음 ── */
+function nextQ(){
+  current++;
+  if(current>=questions.length) showResult();
+  else render();
+}
+
+/* ── 결과 ── */
+function showResult(){
+  document.getElementById('quiz-area').style.display='none';
+  document.querySelector('.prog-wrap').style.display='none';
+  document.getElementById('prog-label').style.display='none';
+
+  const pct=Math.round((score/questions.length)*100);
+  let trophy='🥉', msg='조금 더 공부해봐요! 다시 도전해보세요.';
+  if(pct===100){trophy='🏆';msg='완벽해요! 행정부 박사님이시네요! 👏';}
+  else if(pct>=75){trophy='🥇';msg='훌륭해요! 행정부에 대해 잘 알고 있어요!';}
+  else if(pct>=50){trophy='🥈';msg='절반 이상 맞혔어요! 한 번 더 복습해봐요.';}
+
+  const rs=document.getElementById('result-screen');
+  rs.style.display='block';
+  rs.innerHTML=`
+    <div class="result-trophy">${trophy}</div>
+    <div class="result-title">퀴즈 완료!</div>
+    <div class="result-score">${score} / ${questions.length}</div>
+    <p class="result-msg">${msg}</p>
+    <div class="result-breakdown">
+      ${results.map((r,i)=>`
+        <div class="rb-item">
+          <span class="rb-icon">${r.correct?'✅':'❌'}</span>
+          <span>문제 ${i+1}: ${r.correct?'정답':'오답'}</span>
+        </div>`).join('')}
+    </div>
+    <button class="retry-btn" onclick="restart()">🔄 다시 풀기</button>`;
+}
+
+function restart(){
+  current=0;score=0;results=[];
+  document.getElementById('quiz-area').style.display='block';
+  document.querySelector('.prog-wrap').style.display='block';
+  document.getElementById('prog-label').style.display='block';
+  document.getElementById('result-screen').style.display='none';
+  render();
+}
+
+render();
+</script>
+</body>
+</html>

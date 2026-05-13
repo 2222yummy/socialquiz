@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏛️ 국회 퀴즈</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #1a2744;
+    --gold: #f5a623;
+    --red: #e85d4a;
+    --green: #4caf82;
+    --bg: #f0f4ff;
+    --white: #ffffff;
+    --card: #ffffff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nanum Gothic', sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── 배경 장식 ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(circle at 10% 20%, rgba(245,166,35,0.12) 0%, transparent 40%),
+      radial-gradient(circle at 90% 80%, rgba(26,39,68,0.1) 0%, transparent 40%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 32px 20px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── 헤더 ── */
+  header {
+    text-align: center;
+    margin-bottom: 40px;
+    animation: fadeDown 0.7s ease both;
+  }
+
+  .badge {
+    display: inline-block;
+    background: var(--navy);
+    color: var(--gold);
+    font-family: 'Jua', sans-serif;
+    font-size: 13px;
+    letter-spacing: 3px;
+    padding: 6px 18px;
+    border-radius: 999px;
+    margin-bottom: 14px;
+    text-transform: uppercase;
+  }
+
+  header h1 {
+    font-family: 'Jua', sans-serif;
+    font-size: clamp(28px, 6vw, 44px);
+    color: var(--navy);
+    line-height: 1.2;
+  }
+
+  header h1 span { color: var(--gold); }
+
+  header p {
+    margin-top: 10px;
+    color: #5a6a8a;
+    font-size: 15px;
+  }
+
+  /* ── 진행바 ── */
+  .progress-wrap {
+    background: #dde4f0;
+    border-radius: 999px;
+    height: 10px;
+    margin-bottom: 32px;
+    overflow: hidden;
+    animation: fadeDown 0.7s 0.1s ease both;
+  }
+
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), #ff9f43);
+    border-radius: 999px;
+    transition: width 0.5s cubic-bezier(.4,0,.2,1);
+    width: 0%;
+  }
+
+  .progress-label {
+    text-align: right;
+    font-size: 13px;
+    color: #7a8aaa;
+    margin-bottom: 6px;
+    animation: fadeDown 0.7s 0.1s ease both;
+  }
+
+  /* ── 퀴즈 카드 ── */
+  .quiz-card {
+    background: var(--white);
+    border-radius: 24px;
+    padding: 36px 32px;
+    box-shadow: 0 8px 40px rgba(26,39,68,0.10);
+    animation: slideUp 0.5s ease both;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .quiz-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, var(--navy), var(--gold));
+  }
+
+  .q-number {
+    font-family: 'Jua', sans-serif;
+    font-size: 13px;
+    color: var(--gold);
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+  }
+
+  .q-text {
+    font-family: 'Jua', sans-serif;
+    font-size: clamp(18px, 3.5vw, 24px);
+    color: var(--navy);
+    line-height: 1.5;
+    margin-bottom: 28px;
+  }
+
+  .q-hint {
+    font-size: 13px;
+    color: #8a9abf;
+    margin-bottom: 24px;
+    background: #f0f4ff;
+    padding: 8px 14px;
+    border-radius: 10px;
+    display: inline-block;
+  }
+
+  /* ── 보기 버튼 ── */
+  .options {
+    display: grid;
+    gap: 12px;
+  }
+
+  .options.two-col { grid-template-columns: 1fr 1fr; }
+
+  .opt-btn {
+    background: #f5f8ff;
+    border: 2.5px solid #dde4f0;
+    border-radius: 14px;
+    padding: 16px 20px;
+    font-family: 'Nanum Gothic', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--navy);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .opt-btn:hover:not(:disabled) {
+    border-color: var(--gold);
+    background: #fffbf0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(245,166,35,0.18);
+  }
+
+  .opt-btn .opt-icon {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: #e8eeff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--navy);
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+
+  .opt-btn.correct {
+    border-color: var(--green);
+    background: #f0fff8;
+    color: #2d7a5a;
+  }
+
+  .opt-btn.correct .opt-icon {
+    background: var(--green);
+    color: white;
+  }
+
+  .opt-btn.wrong {
+    border-color: var(--red);
+    background: #fff5f4;
+    color: #c0392b;
+  }
+
+  .opt-btn.wrong .opt-icon {
+    background: var(--red);
+    color: white;
+  }
+
+  .opt-btn.dimmed {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* ── 피드백 박스 ── */
+  .feedback {
+    margin-top: 22px;
+    padding: 16px 20px;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 700;
+    display: none;
+    animation: popIn 0.3s ease both;
+  }
+
+  .feedback.show { display: block; }
+
+  .feedback.ok {
+    background: #e8fff4;
+    color: #2d7a5a;
+    border: 2px solid #b2f0d4;
+  }
+
+  .feedback.no {
+    background: #fff0ef;
+    color: #c0392b;
+    border: 2px solid #ffc5bf;
+  }
+
+  /* ── 다음 버튼 ── */
+  .next-btn {
+    display: none;
+    margin-top: 20px;
+    width: 100%;
+    padding: 16px;
+    background: var(--navy);
+    color: var(--gold);
+    border: none;
+    border-radius: 14px;
+    font-family: 'Jua', sans-serif;
+    font-size: 18px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+  }
+
+  .next-btn:hover {
+    background: #243460;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(26,39,68,0.22);
+  }
+
+  .next-btn.show { display: block; animation: fadeUp 0.3s ease both; }
+
+  /* ── 순서 맞추기 ── */
+  .order-area {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .order-pool {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    min-height: 52px;
+    border: 2.5px dashed #dde4f0;
+    border-radius: 14px;
+    padding: 10px;
+  }
+
+  .order-answer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    min-height: 60px;
+    border: 2.5px solid #dde4f0;
+    background: #f5f8ff;
+    border-radius: 14px;
+    padding: 10px;
+    transition: border-color 0.2s;
+  }
+
+  .order-answer.drag-over { border-color: var(--gold); background: #fffbf0; }
+
+  .order-chip {
+    background: var(--navy);
+    color: white;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: grab;
+    user-select: none;
+    transition: all 0.15s;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  .order-chip:hover { transform: scale(1.05); background: #243460; }
+  .order-chip:active { cursor: grabbing; }
+
+  .order-label {
+    font-size: 13px;
+    color: #7a8aaa;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .check-order-btn {
+    padding: 14px 24px;
+    background: var(--gold);
+    border: none;
+    border-radius: 12px;
+    font-family: 'Jua', sans-serif;
+    font-size: 16px;
+    cursor: pointer;
+    color: var(--navy);
+    transition: all 0.2s;
+    width: 100%;
+  }
+
+  .check-order-btn:hover { background: #e09b1a; transform: translateY(-2px); }
+
+  /* ── 결과 화면 ── */
+  #result-screen {
+    display: none;
+    text-align: center;
+    animation: slideUp 0.6s ease both;
+  }
+
+  .result-trophy {
+    font-size: 80px;
+    margin-bottom: 16px;
+    animation: bounce 0.8s ease 0.3s both;
+  }
+
+  .result-title {
+    font-family: 'Jua', sans-serif;
+    font-size: 34px;
+    color: var(--navy);
+    margin-bottom: 8px;
+  }
+
+  .result-score {
+    font-family: 'Jua', sans-serif;
+    font-size: 56px;
+    color: var(--gold);
+    margin: 16px 0;
+  }
+
+  .result-msg {
+    font-size: 16px;
+    color: #5a6a8a;
+    line-height: 1.7;
+    margin-bottom: 30px;
+  }
+
+  .result-breakdown {
+    background: #f5f8ff;
+    border-radius: 18px;
+    padding: 20px;
+    margin-bottom: 28px;
+    text-align: left;
+  }
+
+  .rb-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid #e8eeff;
+    font-size: 14px;
+    color: var(--navy);
+  }
+
+  .rb-item:last-child { border-bottom: none; }
+
+  .rb-icon { font-size: 20px; width: 28px; text-align: center; }
+
+  .retry-btn {
+    padding: 18px 40px;
+    background: var(--navy);
+    color: var(--gold);
+    border: none;
+    border-radius: 16px;
+    font-family: 'Jua', sans-serif;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+  }
+
+  .retry-btn:hover {
+    background: #243460;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(26,39,68,0.22);
+  }
+
+  /* ── 애니메이션 ── */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes bounce {
+    0%,100% { transform: translateY(0); }
+    30% { transform: translateY(-18px); }
+    60% { transform: translateY(-8px); }
+  }
+
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20%     { transform: translateX(-8px); }
+    40%     { transform: translateX(8px); }
+    60%     { transform: translateX(-6px); }
+    80%     { transform: translateX(6px); }
+  }
+
+  .shake { animation: shake 0.4s ease; }
+
+  @media (max-width: 480px) {
+    .options.two-col { grid-template-columns: 1fr; }
+    .quiz-card { padding: 24px 18px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="badge">🏛️ 사회 퀴즈</div>
+    <h1>국회에서 하는 일을<br><span>알아볼까요?</span></h1>
+    <p>총 7문제 · 클릭해서 풀어보세요!</p>
+  </header>
+
+  <div class="progress-label" id="progress-label">1 / 7</div>
+  <div class="progress-wrap">
+    <div class="progress-bar" id="progress-bar"></div>
+  </div>
+
+  <div id="quiz-area"></div>
+  <div id="result-screen"></div>
+</div>
+
+<script>
+const questions = [
+  {
+    type: 'choice',
+    q: '다음 중 국회가 하는 일이 <u>아닌</u> 것은 무엇일까요?',
+    options: ['법 만들기', '예산안 심의·확정', '국정감사', '세금 걷기'],
+    answer: 3,
+    ok: '정답! 세금을 걷는 것은 국세청 등 행정부의 일이에요. 국회는 법을 만들고, 예산을 심의하고, 국정감사를 해요.',
+    no: '아쉬워요! 세금을 걷는 것은 국회가 아닌 행정부(국세청)가 하는 일이에요.',
+  },
+  {
+    type: 'ox',
+    q: '국회의원의 임기는 4년이다.',
+    answer: 'O',
+    ok: '맞아요! 국회의원은 4년마다 선거를 통해 새롭게 뽑혀요.',
+    no: '틀렸어요! 국회의원의 임기는 4년이에요. (대통령은 5년이에요!)',
+  },
+  {
+    type: 'choice',
+    q: '인사청문회는 무엇을 확인하는 자리인가요?',
+    options: [
+      '새 법이 필요한지 알아보는 자리',
+      '고위 공무원이 일을 잘 할 수 있는지 확인하는 자리',
+      '예산이 얼마나 필요한지 심의하는 자리',
+      '나랏일이 잘 되고 있는지 감시하는 자리',
+    ],
+    answer: 1,
+    ok: '정답! 인사청문회는 고위 공무원에 임명될 사람이 그 업무를 수행하는데 적합한 능력을 갖추었는지 확인해요.',
+    no: '아쉬워요! 인사청문회는 고위 공무원 후보자가 일을 잘 할 수 있는 능력을 갖췄는지 확인하는 자리예요.',
+  },
+  {
+    type: 'ox',
+    q: '국정감사란 나랏일이 잘 운영되는지 국회가 감시하는 것이다.',
+    answer: 'O',
+    ok: '정확해요! 국회는 행정부가 나랏일을 잘 하는지 감시하는 국정감사를 해요.',
+    no: '틀렸어요! 맞아요, 국정감사는 국회가 나랏일이 잘 운영되는지 살펴보고 감시하는 일이에요.',
+  },
+  {
+    type: 'order',
+    q: '법이 만들어지는 과정을 순서대로 맞춰보세요!',
+    hint: '💡 카드를 아래 칸에 순서대로 놓아보세요',
+    items: ['국민의 요구 증가', '법률안 제출', '심의 후 투표', '대통령 서명 후 시행'],
+    answer: ['국민의 요구 증가', '법률안 제출', '심의 후 투표', '대통령 서명 후 시행'],
+    ok: '완벽해요! 법은 국민의 요구 → 법률안 제출 → 심의·투표 → 대통령 서명 순으로 만들어져요.',
+    no: '아쉬워요! 순서는: 국민의 요구 증가 → 법률안 제출 → 심의 후 투표 → 대통령 서명 후 시행 이에요.',
+  },
+  {
+    type: 'choice',
+    q: '대통령이 법률안에 거부권을 행사하면 어떻게 되나요?',
+    options: [
+      '법률안이 바로 폐기된다',
+      '국회에서 재심의를 한다',
+      '국민투표로 결정한다',
+      '대법원에서 다시 검토한다',
+    ],
+    answer: 1,
+    ok: '정답! 대통령이 거부권을 행사하면 법률안이 국회로 다시 돌아가 재심의를 해요.',
+    no: '아쉬워요! 대통령이 거부권을 행사하면 국회에서 재심의(다시 심의)를 해요.',
+  },
+  {
+    type: 'choice',
+    q: '국회가 하는 일을 모두 올바르게 묶은 것은?',
+    options: [
+      '법 만들기, 세금 걷기, 예산안 확정',
+      '법 만들기, 국정감사, 예산안 심의·확정, 인사청문회',
+      '국정감사, 외교 협상, 군대 지휘',
+      '인사청문회, 재판, 법 만들기',
+    ],
+    answer: 1,
+    ok: '완벽해요! 국회의 4가지 주요 역할: 법 만들기 / 국정감사 / 예산안 심의·확정 / 인사청문회',
+    no: '아쉬워요! 국회의 4가지 역할은 법 만들기, 국정감사, 예산안 심의·확정, 인사청문회예요.',
+  },
+];
+
+const icons = ['①','②','③','④'];
+let current = 0;
+let score = 0;
+let results = [];
+let answered = false;
+
+// ── 드래그 상태
+let dragging = null;
+
+function updateProgress() {
+  const pct = (current / questions.length) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = `${current + 1} / ${questions.length}`;
+}
+
+function render() {
+  updateProgress();
+  answered = false;
+  const q = questions[current];
+  const area = document.getElementById('quiz-area');
+  area.innerHTML = '';
+
+  const card = document.createElement('div');
+  card.className = 'quiz-card';
+  card.innerHTML = `
+    <div class="q-number">문제 ${current + 1} / ${questions.length}</div>
+    <div class="q-text">${q.q}</div>
+    ${q.hint ? `<div class="q-hint">${q.hint}</div>` : ''}
+    <div id="options-area"></div>
+    <div class="feedback" id="feedback"></div>
+    <button class="next-btn" id="next-btn" onclick="nextQ()">
+      ${current < questions.length - 1 ? '다음 문제 →' : '결과 보기 🎉'}
+    </button>
+  `;
+  area.appendChild(card);
+
+  const optArea = document.getElementById('options-area');
+
+  if (q.type === 'choice') renderChoice(q, optArea);
+  else if (q.type === 'ox') renderOX(q, optArea);
+  else if (q.type === 'order') renderOrder(q, optArea);
+}
+
+function renderChoice(q, area) {
+  const grid = document.createElement('div');
+  grid.className = 'options';
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.innerHTML = `<span class="opt-icon">${icons[i]}</span>${opt}`;
+    btn.onclick = () => checkChoice(i, q, grid);
+    grid.appendChild(btn);
+  });
+  area.appendChild(grid);
+}
+
+function renderOX(q, area) {
+  const grid = document.createElement('div');
+  grid.className = 'options two-col';
+  ['O', 'X'].forEach(val => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.style.justifyContent = 'center';
+    btn.style.fontSize = '36px';
+    btn.innerHTML = `<span>${val === 'O' ? '⭕' : '❌'}</span>`;
+    btn.onclick = () => checkChoice(val, q, grid);
+    grid.appendChild(btn);
+  });
+  area.appendChild(grid);
+}
+
+function checkChoice(selected, q, grid) {
+  if (answered) return;
+  answered = true;
+  const btns = grid.querySelectorAll('.opt-btn');
+  const correct = q.answer;
+  const isOX = q.type === 'ox';
+
+  let isCorrect;
+  if (isOX) {
+    isCorrect = selected === correct;
+    btns.forEach((btn, i) => {
+      const val = i === 0 ? 'O' : 'X';
+      if (val === correct) btn.classList.add('correct');
+      else if (val === selected && selected !== correct) btn.classList.add('wrong');
+      else btn.classList.add('dimmed');
+      btn.disabled = true;
+    });
+  } else {
+    isCorrect = selected === correct;
+    btns.forEach((btn, i) => {
+      if (i === correct) btn.classList.add('correct');
+      else if (i === selected && selected !== correct) { btn.classList.add('wrong'); btn.classList.add('shake'); }
+      else btn.classList.add('dimmed');
+      btn.disabled = true;
+    });
+  }
+
+  showFeedback(isCorrect, q);
+  if (isCorrect) score++;
+  results.push({ q: q.q, correct: isCorrect });
+}
+
+function renderOrder(q, area) {
+  // shuffle items
+  const shuffled = [...q.items].sort(() => Math.random() - 0.5);
+
+  const poolLabel = document.createElement('div');
+  poolLabel.className = 'order-label';
+  poolLabel.textContent = '📦 보기 카드 (클릭해서 아래로 이동)';
+
+  const pool = document.createElement('div');
+  pool.className = 'order-pool';
+  pool.id = 'order-pool';
+
+  const ansLabel = document.createElement('div');
+  ansLabel.className = 'order-label';
+  ansLabel.style.marginTop = '14px';
+  ansLabel.textContent = '📋 순서 칸 (클릭해서 되돌리기)';
+
+  const ansArea = document.createElement('div');
+  ansArea.className = 'order-answer';
+  ansArea.id = 'order-answer';
+
+  shuffled.forEach(item => {
+    pool.appendChild(makeChip(item, pool, ansArea));
+  });
+
+  const checkBtn = document.createElement('button');
+  checkBtn.className = 'check-order-btn';
+  checkBtn.textContent = '✅ 순서 확인하기';
+  checkBtn.onclick = () => checkOrder(q, ansArea, checkBtn);
+
+  area.appendChild(poolLabel);
+  area.appendChild(pool);
+  area.appendChild(ansLabel);
+  area.appendChild(ansArea);
+  area.appendChild(checkBtn);
+}
+
+function makeChip(text, fromEl, toEl) {
+  const chip = document.createElement('div');
+  chip.className = 'order-chip';
+  chip.textContent = text;
+  chip.dataset.text = text;
+  chip.onclick = () => {
+    // toggle between pool and answer
+    if (chip.parentElement === fromEl) {
+      toEl.appendChild(chip);
+    } else {
+      fromEl.appendChild(chip);
+    }
+  };
+  return chip;
+}
+
+function checkOrder(q, ansArea, checkBtn) {
+  if (answered) return;
+  const placed = [...ansArea.querySelectorAll('.order-chip')].map(c => c.dataset.text);
+  if (placed.length !== q.answer.length) {
+    const fb = document.getElementById('feedback');
+    fb.textContent = `⚠️ 카드 ${q.answer.length}개를 모두 순서 칸에 놓아주세요! (현재 ${placed.length}개)`;
+    fb.className = 'feedback no show';
+    return;
+  }
+  const isCorrect = placed.every((v, i) => v === q.answer[i]);
+  answered = true;
+  checkBtn.disabled = true;
+
+  // color chips
+  ansArea.querySelectorAll('.order-chip').forEach((chip, i) => {
+    chip.style.background = chip.dataset.text === q.answer[i] ? '#4caf82' : '#e85d4a';
+  });
+
+  showFeedback(isCorrect, q);
+  if (isCorrect) score++;
+  results.push({ q: q.q, correct: isCorrect });
+}
+
+function showFeedback(isCorrect, q) {
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback ' + (isCorrect ? 'ok' : 'no') + ' show';
+  fb.textContent = (isCorrect ? '🎉 ' : '💡 ') + (isCorrect ? q.ok : q.no);
+  document.getElementById('next-btn').classList.add('show');
+}
+
+function nextQ() {
+  current++;
+  if (current >= questions.length) {
+    showResult();
+  } else {
+    render();
+  }
+}
+
+function showResult() {
+  document.getElementById('quiz-area').style.display = 'none';
+  document.querySelector('.progress-wrap').style.display = 'none';
+  document.querySelector('.progress-label').style.display = 'none';
+  document.getElementById('progress-label').style.display = 'none';
+
+  const pct = Math.round((score / questions.length) * 100);
+  let trophy = '🥉', msg = '조금 더 공부해봐요! 다시 도전해보세요.';
+  if (pct === 100) { trophy = '🏆'; msg = '완벽해요! 국회 박사님이시네요! 👏'; }
+  else if (pct >= 70) { trophy = '🥇'; msg = '훌륭해요! 국회에 대해 잘 알고 있어요!'; }
+  else if (pct >= 50) { trophy = '🥈'; msg = '절반 이상 맞혔어요! 조금만 더 복습해봐요.'; }
+
+  const rs = document.getElementById('result-screen');
+  rs.style.display = 'block';
+  rs.innerHTML = `
+    <div class="result-trophy">${trophy}</div>
+    <div class="result-title">퀴즈 완료!</div>
+    <div class="result-score">${score} / ${questions.length}</div>
+    <p class="result-msg">${msg}</p>
+    <div class="result-breakdown">
+      ${results.map((r, i) => `
+        <div class="rb-item">
+          <span class="rb-icon">${r.correct ? '✅' : '❌'}</span>
+          <span>문제 ${i + 1}: ${r.correct ? '정답' : '오답'}</span>
+        </div>
+      `).join('')}
+    </div>
+    <button class="retry-btn" onclick="restart()">🔄 다시 풀기</button>
+  `;
+}
+
+function restart() {
+  current = 0; score = 0; results = [];
+  document.getElementById('quiz-area').style.display = 'block';
+  document.querySelector('.progress-wrap').style.display = 'block';
+  document.querySelector('.progress-label').style.display = 'block';
+  document.getElementById('result-screen').style.display = 'none';
+  render();
+}
+
+// 시작
+render();
+</script>
+</body>
+</html>
